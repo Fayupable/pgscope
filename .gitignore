@@ -1,0 +1,30 @@
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# Go
+/go/bin/
+/go/*.exe
+/go/*.test
+/go/*.out
+go.work
+go.work.sum
+
+# Node / Vite (web/)
+web/node_modules/
+web/dist/
+web/.vite/
+web/*.local
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
