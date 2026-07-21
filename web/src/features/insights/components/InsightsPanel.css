@@ -1,0 +1,379 @@
+.insights-panel {
+    max-width: 960px;
+    margin: 0 auto;
+}
+
+.insights-panel__error {
+    color: var(--status-danger);
+    font-size: 12px;
+    margin: 0;
+}
+
+.insights-panel__section {
+    margin-bottom: var(--space-6);
+}
+
+.insights-panel__section h2 {
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+    margin: 0 0 var(--space-3);
+}
+
+.insights-empty {
+    color: var(--text-secondary);
+    font-size: 13px;
+}
+
+.top-queries-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    font-size: 12px;
+}
+
+.top-queries-table th {
+    text-align: left;
+    padding: var(--space-2) var(--space-3);
+    color: var(--text-muted);
+    font-weight: 500;
+    border-bottom: 1px solid var(--border-subtle);
+}
+
+.top-queries-table td {
+    padding: var(--space-2) var(--space-3);
+    border-bottom: 1px solid var(--border-subtle);
+    color: var(--text-primary);
+}
+
+.top-queries-table tr:last-child td {
+    border-bottom: none;
+}
+
+.top-queries-table__query {
+    font-family: var(--font-mono);
+    max-width: 480px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.top-queries-table__query--expanded {
+    max-width: none;
+    overflow: visible;
+    white-space: pre-wrap;
+    word-break: break-word;
+    cursor: pointer;
+}
+
+.index-candidates-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    font-size: 12px;
+}
+
+.index-candidates-table th {
+    text-align: left;
+    padding: var(--space-2) var(--space-3);
+    color: var(--text-muted);
+    font-weight: 500;
+    border-bottom: 1px solid var(--border-subtle);
+}
+
+.index-candidates-table td {
+    padding: var(--space-2) var(--space-3);
+    border-bottom: 1px solid var(--border-subtle);
+    color: var(--text-primary);
+    vertical-align: top;
+}
+
+.index-candidates-table tr:last-child td {
+    border-bottom: none;
+}
+
+.index-candidates-table__table {
+    font-family: var(--font-mono);
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.index-candidates-table__columns {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.index-candidates-table__note {
+    font-size: 11px;
+    color: var(--text-secondary);
+    line-height: 1.4;
+    margin: var(--space-2) 0 0;
+}
+
+.index-candidate-card__column-chip {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    padding: 2px 8px;
+    font-size: 11px;
+    font-family: var(--font-mono);
+    color: var(--accent-primary);
+}
+
+.insights-panel__toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3);
+    margin-bottom: var(--space-4);
+}
+
+.insights-panel__toolbar>button {
+    background: var(--bg-elevated);
+    color: var(--text-primary);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-sm);
+    padding: 4px 12px;
+    font-size: 12px;
+    cursor: pointer;
+    font-family: inherit;
+}
+
+.insights-panel__toolbar>button:hover {
+    border-color: var(--accent-primary);
+}
+
+.insights-panel__toolbar>button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.insights-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-3);
+    margin-top: var(--space-3);
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.insights-pagination button {
+    background: var(--bg-elevated);
+    color: var(--text-primary);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-sm);
+    padding: 4px 12px;
+    font-size: 12px;
+    cursor: pointer;
+    font-family: inherit;
+}
+
+.insights-pagination button:hover:not(:disabled) {
+    border-color: var(--accent-primary);
+}
+
+.insights-pagination button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.confidence-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: var(--radius-sm);
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.confidence-badge--strong {
+    color: var(--status-success);
+    background: rgba(43, 166, 64, 0.12);
+}
+
+.confidence-badge--weak {
+    color: var(--status-warning);
+    background: rgba(249, 168, 10, 0.12);
+}
+
+.confidence-badge--insufficient_data {
+    color: var(--status-neutral);
+    background: rgba(107, 114, 128, 0.12);
+}
+
+.index-candidates-table__rationales {
+    list-style: none;
+    margin: var(--space-3) 0 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+}
+
+.index-candidates-table__rationales li {
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+}
+
+.index-candidates-table__rationales strong {
+    color: var(--text-primary);
+    font-family: var(--font-mono);
+}
+
+.top-queries-table__warning-icon {
+    color: var(--status-warning);
+    margin-right: 6px;
+    cursor: help;
+}
+
+.pagination-warnings-list {
+    list-style: none;
+    margin: var(--space-3) 0 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+}
+
+.pagination-warnings-list li {
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    padding: var(--space-2) var(--space-3);
+}
+
+.insights-disabled-notice {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: var(--space-4);
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+.insights-disabled-notice code {
+    font-family: var(--font-mono);
+    background: var(--bg-elevated);
+    padding: 1px 5px;
+    border-radius: 4px;
+    color: var(--accent-primary);
+}
+
+.insights-disabled-notice__code {
+    font-family: var(--font-mono);
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    padding: var(--space-2) var(--space-3);
+    font-size: 12px;
+    color: var(--text-primary);
+    white-space: pre;
+    overflow-x: auto;
+}
+
+.pagination-warnings__query {
+    font-family: var(--font-mono);
+    display: block;
+    margin-bottom: 4px;
+}
+
+.insights-disabled-notice__hint {
+    margin-top: var(--space-3);
+    font-size: 12px;
+    color: var(--text-muted);
+    line-height: 1.5;
+}
+
+.insights-disabled-notice__hint code {
+    font-family: var(--font-mono);
+    background: var(--bg-elevated);
+    padding: 1px 5px;
+    border-radius: 4px;
+    color: var(--accent-primary);
+}
+
+.health-panel__row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: var(--space-3);
+    margin-bottom: var(--space-5);
+}
+
+.health-panel__section-title {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    margin-bottom: var(--space-2);
+}
+
+.health-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: var(--space-3);
+}
+
+.health-card__header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-bottom: var(--space-2);
+}
+
+.health-card__status {
+    font-size: 14px;
+    line-height: 1;
+}
+
+.health-card__status--ok {
+    color: var(--status-success);
+}
+
+.health-card__status--warning {
+    color: var(--status-warning);
+}
+
+.health-card__title {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+}
+
+.health-card__value {
+    font-size: 20px;
+    font-weight: 700;
+    font-family: var(--font-mono);
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.health-card__value-suffix {
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--text-secondary);
+}
+
+.health-card__warning {
+    margin-top: var(--space-2);
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+}

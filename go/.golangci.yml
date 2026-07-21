@@ -1,0 +1,32 @@
+version: "2"
+linters:
+  enable:
+    - depguard
+  settings:
+    depguard:
+      rules:
+        domain-purity:
+          files:
+            - "**/internal/domain/**"
+          deny:
+            - pkg: "github.com/fayupable/pgscope/internal/infrastructure"
+              desc: "domain must stay pure Go — no infrastructure imports allowed here"
+            - pkg: "github.com/fayupable/pgscope/internal/application"
+              desc: "domain must not depend on the application layer"
+            - pkg: "github.com/jackc/pgx"
+              desc: "domain must not import the Postgres driver directly — that's what infrastructure/postgres is for"
+
+        application-boundary:
+          files:
+            - "**/internal/application/**"
+          deny:
+            - pkg: "github.com/fayupable/pgscope/internal/infrastructure"
+              desc: "application must depend only on domain and its own port/output interfaces, never on a concrete infrastructure adapter"
+
+        sql-isolation:
+          files:
+            - "**/internal/**"
+            - "!**/internal/infrastructure/postgres/**"
+          deny:
+            - pkg: "github.com/jackc/pgx"
+              desc: "only internal/infrastructure/postgres may import the Postgres driver or write SQL"

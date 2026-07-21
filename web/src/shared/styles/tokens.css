@@ -1,0 +1,92 @@
+:root {
+    --bg-page: #0D0D0F;
+    --bg-surface: #18181B;
+    --bg-surface-hover: #222226;
+    --bg-elevated: #242429;
+
+    --text-primary: #E8E8ED;
+    --text-secondary: #A0A0AB;
+    --text-muted: #6B6B78;
+
+    --border-subtle: #2A2A30;
+    --border-strong: #3D3D45;
+
+    --status-success: #2BA640;
+    --status-warning: #F9A80A;
+    --status-danger: #E03A3A;
+    --status-neutral: #6B7280;
+
+    --lock-shared-read: #7FC97F;
+    --lock-shared-write: #BEAED4;
+    --lock-intent: #FDC086;
+    --lock-exclusive: #F0027F;
+
+    --accent-primary: #6C8CFF;
+
+    --font-mono: 'SF Mono', Menlo, monospace;
+    --font-sans: system-ui, sans-serif;
+
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-5: 24px;
+    --space-6: 32px;
+
+    --radius-sm: 6px;
+    --radius-md: 8px;
+}
+
+:root {
+    --cluster-hull-1: rgba(108, 140, 255, 0.10);
+    --cluster-hull-2: rgba(139, 108, 255, 0.10);
+    --cluster-hull-3: rgba(79, 195, 161, 0.10);
+    --cluster-hull-4: rgba(255, 158, 100, 0.10);
+    --cluster-hull-5: rgba(255, 108, 176, 0.10);
+
+    --cluster-hull-stroke-1: rgba(108, 140, 255, 0.4);
+    --cluster-hull-stroke-2: rgba(139, 108, 255, 0.4);
+    --cluster-hull-stroke-3: rgba(79, 195, 161, 0.4);
+    --cluster-hull-stroke-4: rgba(255, 158, 100, 0.4);
+    --cluster-hull-stroke-5: rgba(255, 108, 176, 0.4);
+}
+
+:root[data-theme="light"] {
+    --bg-page: #F7F7F8;
+    --bg-surface: #FFFFFF;
+    --bg-surface-hover: #F0F0F2;
+    --bg-elevated: #EDEDF0;
+
+    --text-primary: #18181B;
+    --text-secondary: #52525B;
+    --text-muted: #8A8A94;
+
+    --border-subtle: #E4E4E7;
+    --border-strong: #D1D1D6;
+
+    --status-success: #1F8A34;
+    --status-warning: #B5790A;
+    --status-danger: #C42B2B;
+    --status-neutral: #71717A;
+
+    --lock-shared-read: #4C9A4C;
+    --lock-shared-write: #8E6BAF;
+    --lock-intent: #C97A3D;
+    --lock-exclusive: #C4026A;
+
+    --accent-primary: #4A6CFF;
+}
+
+:root[data-theme="light"] {
+    --cluster-hull-1: rgba(74, 108, 255, 0.10);
+    --cluster-hull-2: rgba(108, 74, 255, 0.10);
+    --cluster-hull-3: rgba(50, 160, 130, 0.10);
+    --cluster-hull-4: rgba(220, 120, 60, 0.10);
+    --cluster-hull-5: rgba(220, 70, 140, 0.10);
+
+    --cluster-hull-stroke-1: rgba(74, 108, 255, 0.4);
+    --cluster-hull-stroke-2: rgba(108, 74, 255, 0.4);
+    --cluster-hull-stroke-3: rgba(50, 160, 130, 0.4);
+    --cluster-hull-stroke-4: rgba(220, 120, 60, 0.4);
+    --cluster-hull-stroke-5: rgba(220, 70, 140, 0.4);
+}

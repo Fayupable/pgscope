@@ -1,0 +1,57 @@
+.replay-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    padding: var(--space-2) 0;
+}
+
+.replay-controls button {
+    background: var(--bg-elevated);
+    color: var(--text-primary);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-sm);
+    padding: 4px 12px;
+    font-size: 12px;
+    cursor: pointer;
+    font-family: inherit;
+}
+
+.replay-controls button:hover {
+    border-color: var(--accent-primary);
+}
+
+.replay-controls__play {
+    width: 32px;
+    padding: 4px 0 !important;
+    text-align: center;
+    font-size: 13px !important;
+}
+
+.replay-controls input[type='range'] {
+    flex: 1;
+    min-width: 120px;
+    accent-color: var(--accent-primary);
+}
+
+.replay-controls select {
+    background: var(--bg-surface);
+    color: var(--text-primary);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    padding: 4px 6px;
+    font-size: 12px;
+}
+
+.replay-controls__position {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+
+.replay-controls__error {
+    color: var(--status-danger);
+    font-size: 12px;
+    margin: 0;
+}

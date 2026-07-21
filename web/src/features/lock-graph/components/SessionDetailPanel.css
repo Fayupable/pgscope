@@ -1,0 +1,104 @@
+.session-detail-panel {
+    position: absolute;
+    width: 280px;
+    max-height: 70vh;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-md);
+    padding: var(--space-3) var(--space-4);
+    z-index: 10;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.session-detail-panel__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-2);
+}
+
+.session-detail-panel__pid {
+    font-family: var(--font-mono);
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.session-detail-panel__close {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 14px;
+    padding: 2px 6px;
+}
+
+.session-detail-panel__close:hover {
+    color: var(--text-primary);
+}
+
+.session-detail-panel__meta {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-2);
+    margin: 0 0 var(--space-2);
+    font-size: 12px;
+}
+
+.session-detail-panel__meta dt {
+    color: var(--text-muted);
+    margin-bottom: 2px;
+}
+
+.session-detail-panel__meta dd {
+    margin: 0;
+    color: var(--text-primary);
+}
+
+.session-detail-panel__query {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-secondary);
+    background: rgba(0, 0, 0, 0.25);
+    padding: var(--space-2);
+    border-radius: var(--radius-sm);
+    margin: 0 0 var(--space-2);
+    white-space: pre-wrap;
+    word-break: break-word;
+    max-height: 100px;
+    overflow-y: auto;
+}
+
+.session-detail-panel__blocked {
+    font-size: 12px;
+    color: var(--status-danger);
+    margin: 0 0 var(--space-2);
+}
+
+.session-detail-panel__locks {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    font-size: 11px;
+    color: var(--text-secondary);
+}
+
+.session-detail-panel__lock-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.session-detail-panel__lock-row .dot {
+    flex-shrink: 0;
+}
+
+.session-detail-panel__lock-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}

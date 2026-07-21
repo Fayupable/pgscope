@@ -1,0 +1,100 @@
+.dashboard {
+    min-height: 100vh;
+    padding: 40px 20px;
+}
+
+.dashboard__header {
+    position: relative;
+    text-align: center;
+    margin-bottom: var(--space-5);
+}
+
+.dashboard__header h1 {
+    font-size: 40px;
+    margin: 0;
+}
+
+.dashboard__subtitle {
+    color: var(--text-secondary);
+    margin: 4px 0 0;
+}
+
+.control-panel {
+    max-width: 720px;
+    margin: 0 auto var(--space-5);
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: var(--space-3) var(--space-4);
+}
+
+.control-panel__row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-3);
+}
+
+.control-panel__divider {
+    width: 1px;
+    height: 20px;
+    background: var(--border-subtle);
+}
+
+.control-panel__body {
+    margin-top: var(--space-3);
+    padding-top: var(--space-3);
+    border-top: 1px solid var(--border-subtle);
+}
+
+.segmented-control {
+    display: flex;
+    gap: 4px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-subtle);
+    border-radius: 6px;
+    padding: 3px;
+    overflow-x: auto;
+}
+
+.segmented-control button {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 12px;
+    padding: 5px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: inherit;
+    white-space: nowrap;
+    transition: background 0.15s, color 0.15s;
+}
+
+.segmented-control button.active {
+    background: var(--bg-surface-hover);
+    color: var(--text-primary);
+}
+
+.dashboard__header-actions {
+    position: absolute;
+    top: 0;
+    right: 0;
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.dashboard__theme-toggle {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    font-size: 14px;
+    padding: 4px 10px;
+    cursor: pointer;
+    line-height: 1;
+}
+
+.dashboard__theme-toggle:hover {
+    border-color: var(--accent-primary);
+}

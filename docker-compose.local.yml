@@ -1,0 +1,52 @@
+networks:
+  default:
+    name: pgscope-local-net
+  postgres-net:
+    external: true
+    name: general-docker_dev-network
+
+services:
+  backend:
+    build:
+      context: ./go
+    restart: unless-stopped
+    networks:
+      - default
+      - postgres-net
+    environment:
+      PGSCOPE_DATABASE_URL: ${PGSCOPE_DATABASE_URL}
+      PGSCOPE_API_KEY: ${PGSCOPE_API_KEY}
+      PGSCOPE_HTTP_PORT: 8090
+      PGSCOPE_POLL_INTERVAL_SECONDS: ${PGSCOPE_POLL_INTERVAL_SECONDS:-1}
+    ports:
+      - "8090:8090"
+    mem_limit: 128m
+    mem_reservation: 64m
+
+  frontend:
+    build:
+      context: ./web
+    restart: unless-stopped
+    depends_on:
+      - backend
+    networks:
+      - default
+    ports:
+      - "8091:8091"
+    mem_limit: 96m
+    mem_reservation: 64m
+
+  nginx:
+    image: nginx:alpine
+    restart: unless-stopped
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - default
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - "8080:80"
+    mem_limit: 32m
+    mem_reservation: 16m

@@ -1,0 +1,91 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    command:
+      - "postgres"
+      - "-c"
+      - "shared_preload_libraries=pg_stat_statements"
+      - "-c"
+      - "track_activity_query_size=4096"
+      - "-c"
+      - "track_io_timing=on"
+      - "-c"
+      - "log_min_duration_statement=1000"
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-pgscope_demo}
+      POSTGRES_USER: ${POSTGRES_SUPERUSER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_SUPERUSER_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    # LOCAL TEST ONLY: this port mapping lets you connect from the host
+    # machine (psql, a GUI client) while developing. On a real server,
+    # remove this entirely, postgres should never be reachable from
+    # outside the Docker network, not even through nginx, only the
+    # backend container needs to reach it, and it does that over the
+    # internal Docker network without any port mapping at all.
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_SUPERUSER:-postgres}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    mem_limit: 256m
+    mem_reservation: 128m
+    # Disk usage for postgres_data below is NOT capped here. Docker's
+    # default "local" volume driver has no built-in way to enforce a hard
+    # size limit on a named volume from within a compose file, that
+    # requires either a different volume driver (e.g. one backed by
+    # devicemapper with size options) or an OS-level disk quota on the
+    # host path the volume lives on. On a server, monitor disk usage on
+    # the host directly (df -h, or an alerting tool) rather than relying
+    # on Docker to enforce a cap that it does not actually enforce by
+    # default.
+
+  # The pgscope_agent role, its permissions, and pg_stat_statements'
+  # per-database CREATE EXTENSION step are not automated here on purpose,
+  # they're deliberate, security-relevant SQL laid out step by step in the
+  # root README so they're run with full visibility into what each grant
+  # does, rather than hidden inside an init script.
+  backend:
+    build:
+      context: ./go
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PGSCOPE_DATABASE_URL: ${PGSCOPE_DATABASE_URL}
+      PGSCOPE_API_KEY: ${PGSCOPE_API_KEY}
+      PGSCOPE_HTTP_PORT: 8090
+      PGSCOPE_POLL_INTERVAL_SECONDS: ${PGSCOPE_POLL_INTERVAL_SECONDS:-1}
+    # LOCAL TEST ONLY: same reasoning as postgres above. On a server,
+    # remove this port mapping, only your own nginx (running outside this
+    # compose file, already installed on the server) should be able to
+    # reach this container, and it does that over the Docker network by
+    # container name (http://backend:8090), not through a published port
+    # reachable from the public internet.
+    ports:
+      - "8090:8090"
+    mem_limit: 128m
+    mem_reservation: 64m
+
+  frontend:
+    build:
+      context: ./web
+    restart: unless-stopped
+    depends_on:
+      - backend
+    # LOCAL TEST ONLY: same reasoning as above. On a server, remove this
+    # port mapping too, your nginx reaches this container internally
+    # (http://frontend:8091) and is the only thing exposed to the
+    # internet, on 80/443, with TLS termination and the X-Real-IP header
+    # setup described in go/README.md's security model section.
+    ports:
+      - "8091:8091"
+    mem_limit: 96m
+    mem_reservation: 64m
+
+volumes:
+  postgres_data:

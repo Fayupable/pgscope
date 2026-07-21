@@ -1,0 +1,13 @@
+{
+  "rules": {
+    "color-no-hex": true
+  },
+  "overrides": [
+    {
+      "files": ["**/tokens.css", "**/src/index.css"],
+      "rules": {
+        "color-no-hex": null
+      }
+    }
+  ]
+}
