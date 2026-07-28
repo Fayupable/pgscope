@@ -18,6 +18,9 @@ services:
       PGSCOPE_API_KEY: ${PGSCOPE_API_KEY}
       PGSCOPE_HTTP_PORT: 8090
       PGSCOPE_POLL_INTERVAL_SECONDS: ${PGSCOPE_POLL_INTERVAL_SECONDS:-1}
+      PGSCOPE_HISTORY_DB_PATH: /data/pgscope.db
+    volumes:
+      - pgscope_history_local:/data
     ports:
       - "8090:8090"
     mem_limit: 128m
@@ -50,3 +53,6 @@ services:
       - "8080:80"
     mem_limit: 32m
     mem_reservation: 16m
+
+volumes:
+  pgscope_history_local:

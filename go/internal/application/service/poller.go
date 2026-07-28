@@ -4,32 +4,33 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"sort"
 	"time"
 
 	"github.com/fayupable/pgscope/internal/application/port/output"
 	"github.com/fayupable/pgscope/internal/domain"
 )
 
-var allowedRecordMinutes = map[int]bool{5: true, 10: true, 15: true, 30: true}
-
 // Poller periodically pulls active sessions and database-wide activity
-// stats, pushes them out through the publisher port, and optionally records
-// history snapshots. Two independent, opt-in controls gate its behavior:
-//   - Monitor: whether the poller queries the database and publishes live
-//     updates at all. Off by default.
-//   - Record: whether, while monitoring is active, ticks are also written
-//     to history. Off by default, always bounded to a fixed set of
-//     durations (never indefinite).
+// stats, pushes them out through the publisher port, and — whenever
+// monitoring is active — records history snapshots. There is no separate
+// "start recording" concept: recording follows monitoring automatically,
+// at its own slower cadence (recordInterval), so a long-running monitoring
+// session builds up history in the background without the caller having to
+// manage it. Incident snapshots (a new blocking relationship appearing)
+// are always recorded immediately, regardless of that cadence.
 type Poller struct {
-	monitoringService *MonitoringService
-	dbStatsCollector  output.IDatabaseStatsCollectorPort
-	publisher         output.IEventPublisherPort
-	historyStore      output.IHistoryStorePort
-	interval          time.Duration
+	monitoringService      *MonitoringService
+	dbStatsCollector       output.IDatabaseStatsCollectorPort
+	publisher              output.IEventPublisherPort
+	historyStore           output.IHistoryStorePort
+	interval               time.Duration
+	recordInterval         time.Duration
+	maxSessionsPerSnapshot int
 
 	monitorControl    *Recorder
-	recordControl     *Recorder
 	previouslyBlocked map[string]bool
+	lastRecordedAt    time.Time
 }
 
 func NewPoller(
@@ -38,16 +39,19 @@ func NewPoller(
 	publisher output.IEventPublisherPort,
 	historyStore output.IHistoryStorePort,
 	interval time.Duration,
+	recordInterval time.Duration,
+	maxSessionsPerSnapshot int,
 ) *Poller {
 	return &Poller{
-		monitoringService: monitoringService,
-		dbStatsCollector:  dbStatsCollector,
-		publisher:         publisher,
-		historyStore:      historyStore,
-		interval:          interval,
-		monitorControl:    NewRecorder(),
-		recordControl:     NewRecorder(),
-		previouslyBlocked: make(map[string]bool),
+		monitoringService:      monitoringService,
+		dbStatsCollector:       dbStatsCollector,
+		publisher:              publisher,
+		historyStore:           historyStore,
+		interval:               interval,
+		recordInterval:         recordInterval,
+		maxSessionsPerSnapshot: maxSessionsPerSnapshot,
+		monitorControl:         NewRecorder(),
+		previouslyBlocked:      make(map[string]bool),
 	}
 }
 
@@ -64,30 +68,10 @@ func (p *Poller) StartMonitoring(minutes int) error {
 
 func (p *Poller) StopMonitoring() {
 	p.monitorControl.Stop()
-	p.recordControl.Stop()
 }
 
 func (p *Poller) IsMonitoring() bool {
 	return p.monitorControl.IsActive()
-}
-
-// StartRecording begins writing ticks to history. Recording is always
-// bounded to one of a fixed set of presets — never indefinite — since
-// history exists for short-window export/replay, not open-ended growth.
-func (p *Poller) StartRecording(minutes int) error {
-	if !allowedRecordMinutes[minutes] {
-		return fmt.Errorf("minutes must be one of: 5, 10, 15, 30")
-	}
-	p.recordControl.Start(time.Duration(minutes) * time.Minute)
-	return nil
-}
-
-func (p *Poller) StopRecording() {
-	p.recordControl.Stop()
-}
-
-func (p *Poller) IsRecording() bool {
-	return p.recordControl.IsActive()
 }
 
 func (p *Poller) Run(ctx context.Context) {
@@ -112,9 +96,7 @@ func (p *Poller) tick(ctx context.Context) {
 	sessions, ok := p.fetchSessions(ctx)
 	if ok {
 		p.publishSessions(ctx, sessions)
-		if p.recordControl.IsActive() {
-			p.recordSnapshot(ctx, sessions)
-		}
+		p.maybeRecordSnapshot(ctx, sessions)
 	}
 
 	p.publishDatabaseStats(ctx)
@@ -148,16 +130,51 @@ func (p *Poller) publishDatabaseStats(ctx context.Context) {
 	}
 }
 
-func (p *Poller) recordSnapshot(ctx context.Context, sessions []domain.Session) {
+// maybeRecordSnapshot classifies the current tick and decides whether it's
+// actually written to history. An incident (a new blocking relationship
+// appearing) is always recorded immediately — that's exactly the moment
+// worth keeping. A periodic tick is only recorded once recordInterval has
+// elapsed since the last write, decoupling disk writes from the (much
+// faster) live poll interval.
+func (p *Poller) maybeRecordSnapshot(ctx context.Context, sessions []domain.Session) {
+	trigger := p.classifyTrigger(sessions)
+
+	isDue := trigger == domain.SnapshotTriggerIncident || time.Since(p.lastRecordedAt) >= p.recordInterval
+	if !isDue {
+		return
+	}
+
 	snapshot := domain.Snapshot{
-		Sessions:   sessions,
+		Sessions:   trimSessions(sessions, trigger, p.maxSessionsPerSnapshot),
 		CapturedAt: time.Now(),
-		Trigger:    p.classifyTrigger(sessions),
+		Trigger:    trigger,
 	}
 
 	if err := p.historyStore.Append(ctx, snapshot); err != nil {
 		slog.Error("failed to record snapshot", "error", err)
+		return
 	}
+	p.lastRecordedAt = time.Now()
+}
+
+// trimSessions bounds a periodic snapshot's session list to maxSessions,
+// keeping the longest-running sessions when there are more active sessions
+// than the cap allows — this keeps a periodic snapshot's size (and
+// therefore disk growth) independent of how busy the monitored database
+// is. Incident snapshots are never trimmed: understanding a blocking chain
+// requires every session involved, not just the longest-running ones.
+func trimSessions(sessions []domain.Session, trigger domain.SnapshotTrigger, maxSessions int) []domain.Session {
+	if trigger != domain.SnapshotTriggerPeriodic || len(sessions) <= maxSessions {
+		return sessions
+	}
+
+	sorted := make([]domain.Session, len(sessions))
+	copy(sorted, sessions)
+	sort.Slice(sorted, func(i, j int) bool {
+		return sorted[i].Duration > sorted[j].Duration
+	})
+
+	return sorted[:maxSessions]
 }
 
 // classifyTrigger marks this tick as an incident if any session became
@@ -181,8 +198,8 @@ func (p *Poller) classifyTrigger(sessions []domain.Session) domain.SnapshotTrigg
 	return trigger
 }
 
-func (p *Poller) RecentHistory(ctx context.Context) ([]domain.Snapshot, error) {
-	return p.historyStore.Recent(ctx)
+func (p *Poller) RecentHistory(ctx context.Context, since time.Time) ([]domain.Snapshot, error) {
+	return p.historyStore.Recent(ctx, since)
 }
 
 func (p *Poller) Incidents(ctx context.Context) ([]domain.Snapshot, error) {

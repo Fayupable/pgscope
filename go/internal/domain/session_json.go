@@ -41,3 +41,26 @@ func (s Session) MarshalJSON() ([]byte, error) {
 		Locks:           s.Locks,
 	})
 }
+func (s *Session) UnmarshalJSON(data []byte) error {
+	var wire sessionJSON
+	if err := json.Unmarshal(data, &wire); err != nil {
+		return err
+	}
+
+	*s = Session{
+		ID:              wire.ID,
+		User:            wire.User,
+		ApplicationName: wire.ApplicationName,
+		ClientAddress:   wire.ClientAddress,
+		State:           wire.State,
+		WaitEventType:   wire.WaitEventType,
+		WaitEvent:       wire.WaitEvent,
+		Query:           wire.Query,
+		Operation:       wire.Operation,
+		QueryStarted:    wire.QueryStarted,
+		Duration:        time.Duration(wire.DurationSeconds * float64(time.Second)),
+		BlockedBy:       wire.BlockedBy,
+		Locks:           wire.Locks,
+	}
+	return nil
+}

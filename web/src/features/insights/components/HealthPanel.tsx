@@ -4,9 +4,13 @@ import type {
     DatabaseSizeInfo,
     IdleInTransactionWarning,
     InvalidIndex,
+    LongRunningQueryWarning,
     PhysicalIOHotspot,
+    PreparedTransactionWarning,
     ReplicationLagWarning,
+    ReplicationSlotWarning,
     SequenceOverflowRisk,
+    UnloggedTable,
     UnvalidatedConstraint,
     VacuumHealthWarning,
 } from '../../../shared/types/insights'
@@ -20,6 +24,10 @@ import { IdleInTransactionTable } from './IdleInTransactionTable'
 import { CheckpointHealthCard } from './CheckpointHealthCard'
 import { ReplicationLagTable } from './ReplicationLagTable'
 import { PhysicalIOHotspotsTable } from './PhysicalIOHotspotsTable'
+import { PreparedTransactionsCard } from './PreparedTransactionsCard'
+import { ReplicationSlotsCard } from './ReplicationSlotsCard'
+import { LongRunningQueriesCard } from './LongRunningQueriesCard'
+import { UnloggedTablesCard } from './UnloggedTablesCard'
 
 export function HealthPanel({
     databaseSize,
@@ -33,6 +41,10 @@ export function HealthPanel({
     replicationLagWarnings,
     physicalIOEnabled,
     physicalIOHotspots,
+    preparedTransactionWarnings,
+    replicationSlotWarnings,
+    longRunningQueryWarnings,
+    unloggedTables,
 }: {
     databaseSize: DatabaseSizeInfo
     connectionSaturation: ConnectionSaturation
@@ -45,6 +57,10 @@ export function HealthPanel({
     replicationLagWarnings: ReplicationLagWarning[]
     physicalIOEnabled: boolean
     physicalIOHotspots: PhysicalIOHotspot[]
+    preparedTransactionWarnings: PreparedTransactionWarning[]
+    replicationSlotWarnings: ReplicationSlotWarning[]
+    longRunningQueryWarnings: LongRunningQueryWarning[]
+    unloggedTables: UnloggedTable[]
 }) {
     return (
         <div className="health-panel">
@@ -54,6 +70,10 @@ export function HealthPanel({
                 <SequenceOverflowTable risks={sequenceOverflowRisks} />
                 <InvalidObjectsCard invalidIndexes={invalidIndexes} unvalidatedConstraints={unvalidatedConstraints} />
                 <CheckpointHealthCard health={checkpointHealth} />
+                <PreparedTransactionsCard warnings={preparedTransactionWarnings} />
+                <ReplicationSlotsCard warnings={replicationSlotWarnings} />
+                <LongRunningQueriesCard warnings={longRunningQueryWarnings} />
+                <UnloggedTablesCard tables={unloggedTables} />
             </div>
 
             <div className="health-panel__section-title">Vacuum health</div>

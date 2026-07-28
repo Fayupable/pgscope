@@ -60,6 +60,9 @@ services:
       PGSCOPE_API_KEY: ${PGSCOPE_API_KEY}
       PGSCOPE_HTTP_PORT: 8090
       PGSCOPE_POLL_INTERVAL_SECONDS: ${PGSCOPE_POLL_INTERVAL_SECONDS:-1}
+      PGSCOPE_HISTORY_DB_PATH: /data/pgscope.db
+    volumes:
+      - pgscope_history:/data
     # LOCAL TEST ONLY: same reasoning as postgres above. On a server,
     # remove this port mapping, only your own nginx (running outside this
     # compose file, already installed on the server) should be able to
@@ -89,3 +92,4 @@ services:
 
 volumes:
   postgres_data:
+  pgscope_history:

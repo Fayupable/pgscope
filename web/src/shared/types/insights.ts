@@ -72,6 +72,10 @@ export interface Insights {
     replicationLagWarnings: ReplicationLagWarning[]
     physicalIOEnabled: boolean
     physicalIOHotspots: PhysicalIOHotspot[]
+    preparedTransactionWarnings: PreparedTransactionWarning[]
+    replicationSlotWarnings: ReplicationSlotWarning[]
+    longRunningQueryWarnings: LongRunningQueryWarning[]
+    unloggedTables: UnloggedTable[]
 }
 
 export interface TableSize {
@@ -147,5 +151,34 @@ export interface PhysicalIOHotspot {
     execWrites: number
     userTimeMs: number
     systemTimeMs: number
+    explanation: string
+}
+
+export interface PreparedTransactionWarning {
+    gid: string
+    database: string
+    owner: string
+    ageSeconds: number
+    explanation: string
+}
+
+export interface ReplicationSlotWarning {
+    slotName: string
+    active: boolean
+    retainedBytes: number
+    explanation: string
+}
+
+export interface LongRunningQueryWarning {
+    pid: number
+    user: string
+    applicationName: string
+    query: string
+    runningSeconds: number
+    explanation: string
+}
+
+export interface UnloggedTable {
+    table: string
     explanation: string
 }

@@ -42,5 +42,6 @@ export interface DatabaseActivityStats {
     commitsPerSecond: number
     rollbacksPerSecond: number
     cacheHitRatio: number
+    tempBytesPerSecond: number
     measuredAt: string
 }
