@@ -14,6 +14,8 @@ COPY . .
 # nothing beyond what's strictly needed to run the binary.
 RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-s -w" -o /pgscope ./cmd/pgscope
 
+RUN mkdir -p /data
+
 # distroless/static includes CA certificates (needed if PGSCOPE_DATABASE_URL
 # ever uses sslmode=verify-full against a cert-issuing Postgres) and nothing
 # else: no shell, no package manager, drastically smaller attack surface
@@ -22,6 +24,7 @@ FROM gcr.io/distroless/static-debian12:nonroot AS runtime
 
 WORKDIR /app
 COPY --from=builder /pgscope /app/pgscope
+COPY --chown=nonroot:nonroot --from=builder /data /data
 
 USER nonroot:nonroot
 

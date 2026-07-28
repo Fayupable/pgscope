@@ -14,16 +14,13 @@ export function stopMonitoring(): Promise<void> {
     return postJSON('/api/v1/monitor/stop')
 }
 
-export function startRecording(minutes: number): Promise<void> {
-    return postJSON(`/api/v1/record/start?minutes=${minutes}`)
-}
+export type HistoryWindow = '1h' | '3h' | '6h' | '12h' | '24h'
 
-export function stopRecording(): Promise<void> {
-    return postJSON('/api/v1/record/stop')
-}
-
-export async function downloadHistory(): Promise<void> {
-    const response = await fetch('/api/v1/history')
+// Recording is no longer a separate start/stop action — it happens
+// automatically in the background whenever monitoring is active. This just
+// downloads whatever's already been recorded for the requested window.
+export async function downloadHistory(window: HistoryWindow): Promise<void> {
+    const response = await fetch(`/api/v1/history?window=${window}`)
     if (!response.ok) {
         throw new Error(`Failed to fetch history: ${response.status}`)
     }

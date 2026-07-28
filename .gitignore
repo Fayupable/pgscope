@@ -11,6 +11,13 @@
 go.work
 go.work.sum
 
+
+# SQLite history store (local data, contains redacted query text)
+go/data/
+*.db
+*.db-wal
+*.db-shm
+
 # Node / Vite (web/)
 web/node_modules/
 web/dist/

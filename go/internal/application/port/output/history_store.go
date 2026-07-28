@@ -2,6 +2,7 @@ package output
 
 import (
 	"context"
+	"time"
 
 	"github.com/fayupable/pgscope/internal/domain"
 )
@@ -13,6 +14,10 @@ import (
 // stored (in-memory ring buffer, database, ...).
 type IHistoryStorePort interface {
 	Append(ctx context.Context, snapshot domain.Snapshot) error
-	Recent(ctx context.Context) ([]domain.Snapshot, error)
+	// Recent returns snapshots captured at or after since, in chronological
+	// order. Incident snapshots within the window are always returned in
+	// full; implementations may downsample periodic snapshots to keep the
+	// result bounded for wide windows.
+	Recent(ctx context.Context, since time.Time) ([]domain.Snapshot, error)
 	Incidents(ctx context.Context) ([]domain.Snapshot, error)
 }

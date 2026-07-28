@@ -105,6 +105,10 @@ export function InsightsPanel() {
                         replicationLagWarnings={insights.replicationLagWarnings}
                         physicalIOEnabled={insights.physicalIOEnabled}
                         physicalIOHotspots={insights.physicalIOHotspots}
+                        preparedTransactionWarnings={insights.preparedTransactionWarnings}
+                        replicationSlotWarnings={insights.replicationSlotWarnings}
+                        longRunningQueryWarnings={insights.longRunningQueryWarnings}
+                        unloggedTables={insights.unloggedTables}
                     />
                 </section>
             )}

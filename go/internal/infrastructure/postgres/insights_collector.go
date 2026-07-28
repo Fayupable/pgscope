@@ -33,6 +33,10 @@ type InsightsCollector struct {
 	checkpointHealth     *CheckpointHealthCollector
 	replicationLag       *ReplicationLagCollector
 	kcache               *KcacheCollector
+	preparedTransactions *PreparedTransactionCollector
+	replicationSlots     *ReplicationSlotCollector
+	longRunningQueries   *LongRunningQueryCollector
+	unloggedTables       *UnloggedTableCollector
 }
 
 func NewInsightsCollector(pool *pgxpool.Pool) *InsightsCollector {
@@ -55,6 +59,10 @@ func NewInsightsCollector(pool *pgxpool.Pool) *InsightsCollector {
 		checkpointHealth:     NewCheckpointHealthCollector(pool),
 		replicationLag:       NewReplicationLagCollector(pool),
 		kcache:               NewKcacheCollector(pool),
+		preparedTransactions: NewPreparedTransactionCollector(pool),
+		replicationSlots:     NewReplicationSlotCollector(pool),
+		longRunningQueries:   NewLongRunningQueryCollector(pool),
+		unloggedTables:       NewUnloggedTableCollector(pool),
 	}
 }
 
@@ -150,28 +158,53 @@ func (c *InsightsCollector) FetchInsights(ctx context.Context) (domain.Insights,
 			return domain.Insights{}, err
 		}
 	}
+
+	preparedTransactions, err := c.preparedTransactions.Fetch(ctx)
+	if err != nil {
+		return domain.Insights{}, err
+	}
+
+	replicationSlots, err := c.replicationSlots.Fetch(ctx)
+	if err != nil {
+		return domain.Insights{}, err
+	}
+
+	longRunningQueries, err := c.longRunningQueries.Fetch(ctx)
+	if err != nil {
+		return domain.Insights{}, err
+	}
+
+	unloggedTables, err := c.unloggedTables.Fetch(ctx)
+	if err != nil {
+		return domain.Insights{}, err
+	}
+
 	return domain.Insights{
-		TopQueries:                topQueries,
-		IndexCandidates:           indexCandidates,
-		DuplicateIndexes:          duplicateIndexes,
-		UnusedIndexes:             unusedIndexes,
-		FunctionCosts:             functionCosts,
-		TrackFunctionsEnabled:     trackFunctionsSetting != "none",
-		TrackFunctionsSetting:     trackFunctionsSetting,
-		PaginationWarnings:        paginationWarnings,
-		NestedStatementsTracked:   statementsTrackSetting == "all",
-		StatementsTrackSetting:    statementsTrackSetting,
-		DatabaseSize:              databaseSize,
-		ConnectionSaturation:      connectionSaturation,
-		SequenceOverflowRisks:     domain.DetectSequenceOverflowRisks(sequenceUsages),
-		InvalidIndexes:            invalidIndexes,
-		UnvalidatedConstraints:    unvalidatedConstraints,
-		VacuumHealthWarnings:      domain.DetectVacuumHealthWarnings(vacuumStats),
-		IdleInTransactionWarnings: domain.DetectIdleInTransactionWarnings(idleSessions),
-		CheckpointHealth:          domain.NewCheckpointHealth(checkpointStats),
-		ReplicationLagWarnings:    domain.DetectReplicationLagWarnings(replicaLags),
-		PhysicalIOEnabled:         physicalIOEnabled,
-		PhysicalIOHotspots:        domain.DetectPhysicalIOHotspots(physicalIOStats),
+		TopQueries:                  topQueries,
+		IndexCandidates:             indexCandidates,
+		DuplicateIndexes:            duplicateIndexes,
+		UnusedIndexes:               unusedIndexes,
+		FunctionCosts:               functionCosts,
+		TrackFunctionsEnabled:       trackFunctionsSetting != "none",
+		TrackFunctionsSetting:       trackFunctionsSetting,
+		PaginationWarnings:          paginationWarnings,
+		NestedStatementsTracked:     statementsTrackSetting == "all",
+		StatementsTrackSetting:      statementsTrackSetting,
+		DatabaseSize:                databaseSize,
+		ConnectionSaturation:        connectionSaturation,
+		SequenceOverflowRisks:       domain.DetectSequenceOverflowRisks(sequenceUsages),
+		InvalidIndexes:              invalidIndexes,
+		UnvalidatedConstraints:      unvalidatedConstraints,
+		VacuumHealthWarnings:        domain.DetectVacuumHealthWarnings(vacuumStats),
+		IdleInTransactionWarnings:   domain.DetectIdleInTransactionWarnings(idleSessions),
+		CheckpointHealth:            domain.NewCheckpointHealth(checkpointStats),
+		ReplicationLagWarnings:      domain.DetectReplicationLagWarnings(replicaLags),
+		PhysicalIOEnabled:           physicalIOEnabled,
+		PhysicalIOHotspots:          domain.DetectPhysicalIOHotspots(physicalIOStats),
+		PreparedTransactionWarnings: domain.DetectPreparedTransactionWarnings(preparedTransactions),
+		ReplicationSlotWarnings:     domain.DetectReplicationSlotWarnings(replicationSlots),
+		LongRunningQueryWarnings:    domain.DetectLongRunningQueryWarnings(longRunningQueries),
+		UnloggedTables:              unloggedTables,
 	}, nil
 }
 

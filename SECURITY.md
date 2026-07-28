@@ -23,6 +23,12 @@ Please include:
 - The lack of a full user/role system — this is a deliberate, documented design choice for a single-operator tool (see [go/README.md](go/README.md)'s security model section), not an oversight
 - Behavior when pgscope is run without a reverse proxy / without HTTPS — the docs are explicit that this is required for the `Secure` session cookie to work correctly, and that responsibility sits with the deployer, not the application
 
+## History store and query redaction
+
+pgscope persists a rolling window of session snapshots to a local SQLite file (`internal/infrastructure/history/sqlite_store.go`) so past activity can be replayed. Since `pg_stat_activity` reports query text with its actual bound parameter values, every session's query is passed through a best-effort redaction pass (`redactQueryLiterals`) before it's ever written to disk — string and standalone numeric literals are replaced with `***`.
+
+This redaction is **not a formal guarantee**. It's a character-level scanner, not a SQL parser, and known gaps include dollar-quoted strings (`$$...$$`) and some less common literal syntaxes. Treat the history file with the same sensitivity as the monitored database itself: it lives on the pgscope host's local disk, is not exposed over any network protocol, and should be protected by normal filesystem permissions and host-level access control, same as any other credential-adjacent artifact.
+
 ## Response time
 
 This is a single-maintainer open-source project, not a company with an SLA. I'll do my best to acknowledge a report within a few days and follow up with a fix or a clear explanation of why something isn't a vulnerability.

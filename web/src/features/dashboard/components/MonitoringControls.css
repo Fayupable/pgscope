@@ -61,17 +61,6 @@
     border-color: var(--status-success);
 }
 
-.monitoring-controls__stop--recording {
-    border-color: var(--status-danger);
-    color: var(--status-danger);
-    background: rgba(224, 58, 58, 0.1);
-    font-weight: 600;
-}
-
-.monitoring-controls__stop--recording:hover {
-    border-color: var(--status-danger);
-}
-
 .monitoring-controls__download {
     color: var(--text-secondary);
 }

@@ -3,6 +3,7 @@ package history
 import (
 	"context"
 	"sync"
+	"time"
 
 	"github.com/fayupable/pgscope/internal/domain"
 )
@@ -42,11 +43,20 @@ func (s *RingBufferStore) Append(_ context.Context, snapshot domain.Snapshot) er
 	return nil
 }
 
-func (s *RingBufferStore) Recent(_ context.Context) ([]domain.Snapshot, error) {
+// Recent ignores downsampling entirely — the ring buffer's fixed ~5-minute
+// window is already small enough that no window ever needs thinning. since
+// simply filters out anything captured before it.
+func (s *RingBufferStore) Recent(_ context.Context, since time.Time) ([]domain.Snapshot, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	return copySnapshots(s.periodic), nil
+	result := make([]domain.Snapshot, 0, len(s.periodic))
+	for _, snap := range s.periodic {
+		if !snap.CapturedAt.Before(since) {
+			result = append(result, snap)
+		}
+	}
+	return result, nil
 }
 
 func (s *RingBufferStore) Incidents(_ context.Context) ([]domain.Snapshot, error) {

@@ -9,6 +9,7 @@ const EMPTY_STATS: DatabaseActivityStats = {
     commitsPerSecond: 0,
     rollbacksPerSecond: 0,
     cacheHitRatio: 0,
+    tempBytesPerSecond: 0,
     measuredAt: '',
 }
 

@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { startMonitoring, stopMonitoring, startRecording, stopRecording, downloadHistory } from '../../../shared/api/controlClient'
+import { startMonitoring, stopMonitoring, downloadHistory } from '../../../shared/api/controlClient'
+import type { HistoryWindow } from '../../../shared/api/controlClient'
 import './MonitoringControls.css'
 
 const MONITOR_OPTIONS = [
@@ -9,18 +10,18 @@ const MONITOR_OPTIONS = [
   { label: 'Full', value: 0 },
 ]
 
-const RECORD_OPTIONS = [
-  { label: '5 min', value: 5 },
-  { label: '10 min', value: 10 },
-  { label: '15 min', value: 15 },
-  { label: '30 min', value: 30 },
+const WINDOW_OPTIONS: { label: string; value: HistoryWindow }[] = [
+  { label: '1 hour', value: '1h' },
+  { label: '3 hours', value: '3h' },
+  { label: '6 hours', value: '6h' },
+  { label: '12 hours', value: '12h' },
+  { label: '24 hours', value: '24h' },
 ]
 
 export function MonitoringControls() {
   const [monitorMinutes, setMonitorMinutes] = useState(MONITOR_OPTIONS[0].value)
-  const [recordMinutes, setRecordMinutes] = useState(RECORD_OPTIONS[0].value)
+  const [historyWindow, setHistoryWindow] = useState<HistoryWindow>(WINDOW_OPTIONS[0].value)
   const [isMonitoring, setIsMonitoring] = useState(false)
-  const [isRecording, setIsRecording] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   async function handleAction(action: () => Promise<void>, onSuccess: () => void) {
@@ -47,29 +48,20 @@ export function MonitoringControls() {
             Start
           </button>
         ) : (
-          <button className="monitoring-controls__stop monitoring-controls__stop--live" onClick={() => handleAction(stopMonitoring, () => { setIsMonitoring(false); setIsRecording(false) })}>
+          <button className="monitoring-controls__stop monitoring-controls__stop--live" onClick={() => handleAction(stopMonitoring, () => setIsMonitoring(false))}>
             ● Live
           </button>
         )}
       </div>
 
       <div className="monitoring-controls__group">
-        <span className="monitoring-controls__label">Record</span>
-        <select value={recordMinutes} onChange={(e) => setRecordMinutes(Number(e.target.value))} disabled={isRecording}>
-          {RECORD_OPTIONS.map((opt) => (
+        <span className="monitoring-controls__label">History</span>
+        <select value={historyWindow} onChange={(e) => setHistoryWindow(e.target.value as HistoryWindow)}>
+          {WINDOW_OPTIONS.map((opt) => (
             <option key={opt.value} value={opt.value}>{opt.label}</option>
           ))}
         </select>
-        {!isRecording ? (
-          <button className="monitoring-controls__start" onClick={() => handleAction(() => startRecording(recordMinutes), () => setIsRecording(true))} disabled={!isMonitoring}>
-            Start
-          </button>
-        ) : (
-          <button className="monitoring-controls__stop monitoring-controls__stop--recording" onClick={() => handleAction(stopRecording, () => setIsRecording(false))}>
-            ● Recording
-          </button>
-        )}
-        <button className="monitoring-controls__download" onClick={() => handleAction(downloadHistory, () => {})}>
+        <button className="monitoring-controls__download" onClick={() => handleAction(() => downloadHistory(historyWindow), () => {})}>
           Download JSON
         </button>
       </div>

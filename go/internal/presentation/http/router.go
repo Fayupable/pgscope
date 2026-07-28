@@ -32,8 +32,6 @@ func NewRouter(broadcaster *sse.Broadcaster, poller *service.Poller, insightsSer
 	mux.Handle("POST /api/v1/monitor/start", withAuth(cfg.APIKey, withRateLimit(generalLimiter, handleMonitorStart(poller))))
 	mux.Handle("POST /api/v1/monitor/stop", withAuth(cfg.APIKey, withRateLimit(generalLimiter, handleMonitorStop(poller))))
 
-	mux.Handle("POST /api/v1/record/start", withAuth(cfg.APIKey, withRateLimit(generalLimiter, handleRecordStart(poller))))
-	mux.Handle("POST /api/v1/record/stop", withAuth(cfg.APIKey, withRateLimit(generalLimiter, handleRecordStop(poller))))
 	mux.Handle("GET /api/v1/history", withAuth(cfg.APIKey, withRateLimit(generalLimiter, handleHistory(poller))))
 
 	mux.Handle("GET /api/v1/insights", withAuth(cfg.APIKey, withRateLimit(insightsLimiter, withRequestTimeout(insightsTimeout, handleInsights(insightsService)))))

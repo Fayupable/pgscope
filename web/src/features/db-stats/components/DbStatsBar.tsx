@@ -27,6 +27,23 @@ export function DbStatsBar() {
                 </span>
                 <span className="db-stats-bar__label">cache hit ratio</span>
             </div>
+            <div className="db-stats-bar__metric">
+                <span
+                    className={
+                        'db-stats-bar__value' +
+                        (stats.tempBytesPerSecond > 1024 * 1024 ? ' db-stats-bar__value--rollback' : '')
+                    }
+                >
+                    {formatBytesPerSecond(stats.tempBytesPerSecond)}
+                </span>
+                <span className="db-stats-bar__label">temp files/s</span>
+            </div>
         </div>
     )
+}
+
+function formatBytesPerSecond(bytesPerSecond: number): string {
+    if (bytesPerSecond < 1024) return `${bytesPerSecond.toFixed(0)} B/s`
+    if (bytesPerSecond < 1024 * 1024) return `${(bytesPerSecond / 1024).toFixed(1)} KB/s`
+    return `${(bytesPerSecond / (1024 * 1024)).toFixed(1)} MB/s`
 }
