@@ -1,4 +1,4 @@
-import { polygonHull, polygonCentroid } from 'd3-polygon'
+import { polygonHull } from 'd3-polygon'
 import type { Position } from './types'
 
 export interface ClusterHull {
@@ -6,22 +6,30 @@ export interface ClusterHull {
     colorIndex: number
 }
 
-const HULL_PADDING = 36
+// Half of the 44px session node rendered in SessionGraph / ClusterHulls.
+// Hulls are computed from top-left anchors; ClusterHulls shifts by this
+// amount so the path is centered on the visible circles.
+const NODE_HALF_SIZE = 22
+// Extra air gap outside each node circle so the hull never appears to
+// sit on (or clip through) the node boundary.
+const HULL_MARGIN = 20
+/** Clearance from each node anchor to the hull — node radius + visible margin. */
+const HULL_PADDING = NODE_HALF_SIZE + HULL_MARGIN
 const HULL_COLOR_COUNT = 5
-/** If the thinness ratio (area / perimeter^2) is below this, treat as near-collinear. */
-const COLLINEAR_AREA_RATIO = 1e-4
 
 /**
  * Computes a padded convex hull polygon per multi-node cluster, using each
- * cluster's final (packed) node positions. Padding is applied by pushing
- * every hull point outward from the hull's centroid, so the shape visually
- * surrounds the nodes with some margin rather than hugging them tightly.
- * Clusters with only 2 nodes (no true hull, d3-polygon needs 3+ points)
- * fall back to a small rectangle around the two points.
+ * cluster's final (packed) node positions.
  *
- * Near-collinear 3+ node layouts (common for tiny force-simulated clusters)
- * also use the rectangle fallback: centroid padding on a razor-thin hull
- * produces huge perpendicular overshoot.
+ * Padding is the convex hull of axis-aligned squares of half-side
+ * HULL_PADDING around every node anchor. That is equivalent to a Minkowski
+ * sum of the point set with a square, and it:
+ *   - guarantees at least HULL_PADDING clearance from every node (so the
+ *     rendered 44px circles never sit on the hull edge)
+ *   - naturally becomes a padded bounding rectangle for near-collinear
+ *     layouts, avoiding the huge perpendicular overshoot that centroid
+ *     radial expansion produced on razor-thin hulls
+ * Clusters with only one distinct point still get a small square.
  */
 export function computeClusterHulls(
     componentLayouts: { ids: string[]; positions: Map<string, Position> }[],
@@ -33,42 +41,35 @@ export function computeClusterHulls(
             return [pos.x, pos.y]
         })
 
-        const hull = polygonHull(points)
         const colorIndex = index % HULL_COLOR_COUNT
-
-        if (!hull || isNearlyCollinear(hull)) {
-            return { points: padRectangle(points), colorIndex }
-        }
-
-        const centroid = polygonCentroid(hull)
-        const padded = hull.map(([x, y]) => padPoint(x, y, centroid[0], centroid[1]))
-
-        return { points: padded.map(([x, y]) => ({ x, y })), colorIndex }
+        return { points: padAroundNodes(points), colorIndex }
     })
 }
 
-function isNearlyCollinear(hull: [number, number][]): boolean {
-    if (hull.length < 3) return true
-    // Shoelace area
-    let area2 = 0
-    let peri = 0
-    for (let i = 0; i < hull.length; i++) {
-        const [x1, y1] = hull[i]
-        const [x2, y2] = hull[(i + 1) % hull.length]
-        area2 += x1 * y2 - x2 * y1
-        peri += Math.hypot(x2 - x1, y2 - y1)
-    }
-    const area = Math.abs(area2) / 2
-    if (peri <= 0) return true
-    // Dimensionless thinness; collinear/flat hulls have near-zero area.
-    return area / (peri * peri) < COLLINEAR_AREA_RATIO
-}
+/**
+ * Expand each node to a square of half-side HULL_PADDING and take the
+ * convex hull of all square corners.
+ */
+function padAroundNodes(points: [number, number][]): Position[] {
+    if (points.length === 0) return []
 
-function padPoint(x: number, y: number, centroidX: number, centroidY: number): [number, number] {
-    const dx = x - centroidX
-    const dy = y - centroidY
-    const length = Math.sqrt(dx * dx + dy * dy) || 1
-    return [x + (dx / length) * HULL_PADDING, y + (dy / length) * HULL_PADDING]
+    const inflated: [number, number][] = []
+    for (const [x, y] of points) {
+        inflated.push(
+            [x - HULL_PADDING, y - HULL_PADDING],
+            [x + HULL_PADDING, y - HULL_PADDING],
+            [x + HULL_PADDING, y + HULL_PADDING],
+            [x - HULL_PADDING, y + HULL_PADDING],
+        )
+    }
+
+    const hull = polygonHull(inflated)
+    if (!hull) {
+        // Degenerate (should not happen with 4+ inflated corners); fall back
+        // to the AABB of the inflated set.
+        return padRectangle(points)
+    }
+    return hull.map(([x, y]) => ({ x, y }))
 }
 
 function padRectangle(points: [number, number][]): Position[] {
@@ -86,3 +87,6 @@ function padRectangle(points: [number, number][]): Position[] {
         { x: minX, y: maxY },
     ]
 }
+
+/** Exported for unit tests. */
+export const _test = { HULL_PADDING, NODE_HALF_SIZE, HULL_MARGIN, padAroundNodes }
