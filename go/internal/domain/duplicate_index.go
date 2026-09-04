@@ -134,6 +134,26 @@ func preferOther(candidate, other IndexInfo) bool {
 	return candidate.Name > other.Name
 }
 
+// NewDuplicateIndex builds a DuplicateIndex from a redundancy determination
+// already made by the source engine itself (e.g. MySQL's
+// sys.schema_redundant_indexes, which computes this the same way
+// DetectDuplicateIndexes does for Postgres, just server-side) — the
+// explanation wording stays in the domain layer either way, so every
+// engine's duplicate-index message reads consistently.
+func NewDuplicateIndex(table, redundantIndex, coveringIndex string, redundantColumns, coveringColumns []string) DuplicateIndex {
+	return DuplicateIndex{
+		Table:            table,
+		RedundantIndex:   redundantIndex,
+		CoveringIndex:    coveringIndex,
+		RedundantColumns: redundantColumns,
+		CoveringColumns:  coveringColumns,
+		Explanation: fmt.Sprintf(
+			"Index %q on (%s) appears redundant — index %q on (%s) already covers the same lookups. Verify against your actual query patterns before dropping it.",
+			redundantIndex, strings.Join(redundantColumns, ", "), coveringIndex, strings.Join(coveringColumns, ", "),
+		),
+	}
+}
+
 func buildDuplicateExplanation(candidate, covering IndexInfo) string {
 	var b strings.Builder
 	_, _ = fmt.Fprintf(&b, "Index %q on (%s) appears redundant — index %q on (%s) already covers the same lookups",

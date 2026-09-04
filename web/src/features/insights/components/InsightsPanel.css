@@ -221,6 +221,17 @@
     gap: var(--space-2);
 }
 
+/* Compact health-card grid only — a card with many warnings (e.g. dozens
+   of lock waits) would otherwise grow tall enough to distort the whole
+   grid row's height. Full-width tab views (DuplicateIndexesTable and
+   friends, which reuse this same list class) already have the whole page
+   to scroll in, so they're deliberately left unbounded here. */
+.health-card .index-candidates-table__rationales {
+    max-height: 180px;
+    overflow-y: auto;
+    padding-right: var(--space-2);
+}
+
 .index-candidates-table__rationales li {
     font-size: 12px;
     color: var(--text-secondary);
@@ -331,10 +342,13 @@
 }
 
 .health-card__header {
+    margin-bottom: var(--space-2);
+}
+
+.health-card__title-row {
     display: flex;
     align-items: center;
     gap: var(--space-2);
-    margin-bottom: var(--space-2);
 }
 
 .health-card__status {
@@ -354,6 +368,16 @@
     font-size: 12px;
     text-transform: uppercase;
     letter-spacing: 0.05em;
+    color: var(--text-muted);
+}
+
+/* Always visible, regardless of whether the card currently has anything to
+   report — a beginner shouldn't need a warning to appear before learning
+   what a card even checks. */
+.health-card__subtitle {
+    margin: 2px 0 0;
+    font-size: 11px;
+    line-height: 1.4;
     color: var(--text-muted);
 }
 

@@ -4,6 +4,7 @@ import type {
     DatabaseSizeInfo,
     IdleInTransactionWarning,
     InvalidIndex,
+    LockWaitWarning,
     LongRunningQueryWarning,
     PhysicalIOHotspot,
     PreparedTransactionWarning,
@@ -28,6 +29,8 @@ import { PreparedTransactionsCard } from './PreparedTransactionsCard'
 import { ReplicationSlotsCard } from './ReplicationSlotsCard'
 import { LongRunningQueriesCard } from './LongRunningQueriesCard'
 import { UnloggedTablesCard } from './UnloggedTablesCard'
+import { LockWaitCard } from './LockWaitCard'
+import { useEngine } from '../../../shared/api/engineContext'
 
 export function HealthPanel({
     databaseSize,
@@ -45,6 +48,7 @@ export function HealthPanel({
     replicationSlotWarnings,
     longRunningQueryWarnings,
     unloggedTables,
+    lockWaitWarnings,
 }: {
     databaseSize: DatabaseSizeInfo
     connectionSaturation: ConnectionSaturation
@@ -61,32 +65,54 @@ export function HealthPanel({
     replicationSlotWarnings: ReplicationSlotWarning[]
     longRunningQueryWarnings: LongRunningQueryWarning[]
     unloggedTables: UnloggedTable[]
+    lockWaitWarnings: LockWaitWarning[]
 }) {
+    // Postgres-specific concepts (VACUUM, WAL checkpoints, replication
+    // slots, pg_stat_kcache-based physical I/O) have no MySQL equivalent —
+    // showing them against a MySQL connection would be actively misleading
+    // (e.g. telling a MySQL user to "restart PostgreSQL"). `engine` is
+    // null only during the brief moment the connection info hasn't loaded
+    // yet; defaulting to "show" in that window avoids a flash of missing
+    // content for the common (Postgres) case.
+    const engine = useEngine()
+    const isMysql = engine === 'mysql'
+
     return (
         <div className="health-panel">
             <div className="health-panel__row">
                 <ConnectionSaturationCard saturation={connectionSaturation} />
                 <DatabaseSizeCard totalBytes={databaseSize.totalBytes} />
                 <SequenceOverflowTable risks={sequenceOverflowRisks} />
-                <InvalidObjectsCard invalidIndexes={invalidIndexes} unvalidatedConstraints={unvalidatedConstraints} />
-                <CheckpointHealthCard health={checkpointHealth} />
+                {!isMysql && (
+                    <InvalidObjectsCard invalidIndexes={invalidIndexes} unvalidatedConstraints={unvalidatedConstraints} />
+                )}
+                {!isMysql && <CheckpointHealthCard health={checkpointHealth} />}
                 <PreparedTransactionsCard warnings={preparedTransactionWarnings} />
-                <ReplicationSlotsCard warnings={replicationSlotWarnings} />
+                {!isMysql && <ReplicationSlotsCard warnings={replicationSlotWarnings} />}
                 <LongRunningQueriesCard warnings={longRunningQueryWarnings} />
                 <UnloggedTablesCard tables={unloggedTables} />
+                {isMysql && <LockWaitCard warnings={lockWaitWarnings} />}
             </div>
 
-            <div className="health-panel__section-title">Vacuum health</div>
-            <VacuumHealthTable warnings={vacuumHealthWarnings} />
+            {!isMysql && (
+                <>
+                    <div className="health-panel__section-title">Vacuum health</div>
+                    <VacuumHealthTable warnings={vacuumHealthWarnings} />
+                </>
+            )}
 
             <div className="health-panel__section-title">Idle in transaction</div>
             <IdleInTransactionTable warnings={idleInTransactionWarnings} />
 
-            <div className="health-panel__section-title">Replication lag</div>
-            <ReplicationLagTable warnings={replicationLagWarnings} />
+            {!isMysql && (
+                <>
+                    <div className="health-panel__section-title">Replication lag</div>
+                    <ReplicationLagTable warnings={replicationLagWarnings} />
 
-            <div className="health-panel__section-title">Physical I/O hotspots</div>
-            <PhysicalIOHotspotsTable hotspots={physicalIOHotspots} physicalIOEnabled={physicalIOEnabled} />
+                    <div className="health-panel__section-title">Physical I/O hotspots</div>
+                    <PhysicalIOHotspotsTable hotspots={physicalIOHotspots} physicalIOEnabled={physicalIOEnabled} />
+                </>
+            )}
 
             <div className="health-panel__section-title">Largest tables</div>
             <DatabaseSizeTable tables={databaseSize.largestTables} />

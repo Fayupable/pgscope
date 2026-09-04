@@ -1,16 +1,16 @@
 import type { LongRunningQueryWarning } from '../../../shared/types/insights'
+import { HealthCardHeader } from './HealthCardHeader'
 
 export function LongRunningQueriesCard({ warnings }: { warnings: LongRunningQueryWarning[] }) {
     const hasIssues = warnings.length > 0
 
     return (
         <div className="health-card">
-            <div className="health-card__header">
-                <span className={'health-card__status' + (hasIssues ? ' health-card__status--warning' : ' health-card__status--ok')}>
-                    {hasIssues ? '⚠' : '✓'}
-                </span>
-                <span className="health-card__title">Long-running queries</span>
-            </div>
+            <HealthCardHeader
+                title="Long-running queries"
+                subtitle="Queries that have been actively running far longer than normal."
+                ok={!hasIssues}
+            />
 
             {!hasIssues ? (
                 <p className="insights-empty">No long-running active queries.</p>

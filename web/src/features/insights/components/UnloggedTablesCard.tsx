@@ -1,16 +1,16 @@
 import type { UnloggedTable } from '../../../shared/types/insights'
+import { HealthCardHeader } from './HealthCardHeader'
 
 export function UnloggedTablesCard({ tables }: { tables: UnloggedTable[] }) {
     const hasIssues = tables.length > 0
 
     return (
         <div className="health-card">
-            <div className="health-card__header">
-                <span className={'health-card__status' + (hasIssues ? ' health-card__status--warning' : ' health-card__status--ok')}>
-                    {hasIssues ? '⚠' : '✓'}
-                </span>
-                <span className="health-card__title">Unlogged tables</span>
-            </div>
+            <HealthCardHeader
+                title="Unlogged tables"
+                subtitle="Tables whose data is lost on a crash or restart, by design."
+                ok={!hasIssues}
+            />
 
             {!hasIssues ? (
                 <p className="insights-empty">No unlogged tables found.</p>

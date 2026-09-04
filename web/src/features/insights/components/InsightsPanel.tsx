@@ -7,6 +7,7 @@ import { UnusedIndexesTable } from './UnusedIndexesTable'
 import { FunctionCostsTable } from './FunctionCostsTable'
 import { PaginationWarningsTable } from './PaginationWarningsTable'
 import { HealthPanel } from './HealthPanel'
+import { useEngine } from '../../../shared/api/engineContext'
 import './InsightsPanel.css'
 
 type Tab = 'queries' | 'candidates' | 'duplicates' | 'unused' | 'functions' | 'pagination' | 'health'
@@ -14,6 +15,11 @@ type Tab = 'queries' | 'candidates' | 'duplicates' | 'unused' | 'functions' | 'p
 export function InsightsPanel() {
     const { insights, loading, error, refresh } = useInsights()
     const [tab, setTab] = useState<Tab>('queries')
+    // MySQL has no function/trigger cost tracking at all (see
+    // mysql.InsightsCollector on the backend) — the Postgres-only
+    // "Functions & Triggers" tab would otherwise show instructions to
+    // reload PostgreSQL even against a MySQL connection.
+    const isMysql = useEngine() === 'mysql'
 
     return (
         <div className="insights-panel">
@@ -31,9 +37,11 @@ export function InsightsPanel() {
                     <button className={tab === 'unused' ? 'active' : ''} onClick={() => setTab('unused')}>
                         Unused Indexes
                     </button>
-                    <button className={tab === 'functions' ? 'active' : ''} onClick={() => setTab('functions')}>
-                        Functions & Triggers
-                    </button>
+                    {!isMysql && (
+                        <button className={tab === 'functions' ? 'active' : ''} onClick={() => setTab('functions')}>
+                            Functions & Triggers
+                        </button>
+                    )}
                     <button className={tab === 'pagination' ? 'active' : ''} onClick={() => setTab('pagination')}>
                         Pagination Warnings
                     </button>
@@ -73,7 +81,7 @@ export function InsightsPanel() {
                 </section>
             )}
 
-            {tab === 'functions' && (
+            {tab === 'functions' && !isMysql && (
                 <section className="insights-panel__section">
                     <FunctionCostsTable
                         functions={insights?.functionCosts ?? []}
@@ -109,6 +117,7 @@ export function InsightsPanel() {
                         replicationSlotWarnings={insights.replicationSlotWarnings}
                         longRunningQueryWarnings={insights.longRunningQueryWarnings}
                         unloggedTables={insights.unloggedTables}
+                        lockWaitWarnings={insights.lockWaitWarnings}
                     />
                 </section>
             )}

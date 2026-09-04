@@ -54,4 +54,6 @@ type Insights struct {
 	ReplicationSlotWarnings     []ReplicationSlotWarning     `json:"replicationSlotWarnings"`
 	LongRunningQueryWarnings    []LongRunningQueryWarning    `json:"longRunningQueryWarnings"`
 	UnloggedTables              []UnloggedTable              `json:"unloggedTables"`
+	// LockWaitWarnings is MySQL-only for now — see domain.LockWaitSession.
+	LockWaitWarnings []LockWaitWarning `json:"lockWaitWarnings"`
 }

@@ -1,4 +1,5 @@
 import type { PaginationWarning } from '../../../shared/types/insights'
+import { useEngine } from '../../../shared/api/engineContext'
 
 export function PaginationWarningsTable({
     warnings,
@@ -7,6 +8,11 @@ export function PaginationWarningsTable({
     warnings: PaginationWarning[]
     nestedStatementsTracked: boolean
 }) {
+    // pg_stat_statements.track is a Postgres-only setting — MySQL has no
+    // equivalent concept, and always reports nestedStatementsTracked as
+    // false (unset) rather than true, so this note must not show there.
+    const isMysql = useEngine() === 'mysql'
+
     return (
         <>
             {warnings.length === 0 ? (
@@ -23,7 +29,7 @@ export function PaginationWarningsTable({
                 </ul>
             )}
 
-            {!nestedStatementsTracked && (
+            {!isMysql && !nestedStatementsTracked && (
                 <p className="insights-disabled-notice__hint">
                     Note: <code>pg_stat_statements.track</code> is currently <code>top</code> — queries run inside
                     functions, procedures, or <code>DO</code> blocks aren't tracked individually, so this list

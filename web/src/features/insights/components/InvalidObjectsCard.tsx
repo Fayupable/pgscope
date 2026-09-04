@@ -1,4 +1,5 @@
 import type { InvalidIndex, UnvalidatedConstraint } from '../../../shared/types/insights'
+import { HealthCardHeader } from './HealthCardHeader'
 
 export function InvalidObjectsCard({
     invalidIndexes,
@@ -11,12 +12,11 @@ export function InvalidObjectsCard({
 
     return (
         <div className="health-card">
-            <div className="health-card__header">
-                <span className={'health-card__status' + (hasIssues ? ' health-card__status--warning' : ' health-card__status--ok')}>
-                    {hasIssues ? '⚠' : '✓'}
-                </span>
-                <span className="health-card__title">Invalid indexes & constraints</span>
-            </div>
+            <HealthCardHeader
+                title="Invalid indexes & constraints"
+                subtitle="Indexes or constraints left broken by an operation that didn't finish cleanly."
+                ok={!hasIssues}
+            />
 
             {!hasIssues ? (
                 <p className="insights-empty">No invalid indexes or unvalidated constraints found.</p>
