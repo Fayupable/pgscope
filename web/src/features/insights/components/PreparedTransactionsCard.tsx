@@ -1,16 +1,16 @@
 import type { PreparedTransactionWarning } from '../../../shared/types/insights'
+import { HealthCardHeader } from './HealthCardHeader'
 
 export function PreparedTransactionsCard({ warnings }: { warnings: PreparedTransactionWarning[] }) {
     const hasIssues = warnings.length > 0
 
     return (
         <div className="health-card">
-            <div className="health-card__header">
-                <span className={'health-card__status' + (hasIssues ? ' health-card__status--warning' : ' health-card__status--ok')}>
-                    {hasIssues ? '⚠' : '✓'}
-                </span>
-                <span className="health-card__title">Prepared transactions</span>
-            </div>
+            <HealthCardHeader
+                title="Prepared transactions"
+                subtitle="Two-phase-commit transactions stuck waiting to finish."
+                ok={!hasIssues}
+            />
 
             {!hasIssues ? (
                 <p className="insights-empty">No orphaned prepared transactions.</p>

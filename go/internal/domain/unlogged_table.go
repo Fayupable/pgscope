@@ -22,3 +22,18 @@ func NewUnloggedTable(table string) UnloggedTable {
 		),
 	}
 }
+
+// NewMemoryEngineTable carries the same finding as NewUnloggedTable — a
+// table that isn't crash-safe — but with wording specific to MySQL's
+// MEMORY engine, which has no write-ahead log at all: MEMORY tables live
+// entirely in RAM and are silently emptied on any restart, not just an
+// unclean shutdown.
+func NewMemoryEngineTable(table string) UnloggedTable {
+	return UnloggedTable{
+		Table: table,
+		Explanation: fmt.Sprintf(
+			"Table %q uses the MEMORY storage engine. Its data lives entirely in RAM and is never written to disk, so it's silently emptied on any server restart, not just a crash. Confirm this is intentional — if this table holds anything you'd need after a restart, consider using a regular (InnoDB) table instead.",
+			table,
+		),
+	}
+}

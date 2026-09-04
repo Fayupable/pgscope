@@ -61,6 +61,23 @@ func buildUnusedExplanation(idx UnusedIndexInfo, statsAgeSeconds float64) string
 	)
 }
 
+// NewUnusedIndex builds an UnusedIndex from a determination the source
+// engine already made itself (e.g. MySQL's sys.schema_unused_indexes,
+// which flags an index as unused based on zero I/O since the server
+// started or performance_schema counters were last reset — MySQL doesn't
+// expose the scan count or a simple per-index size the way Postgres does,
+// so those fields are left at zero here rather than guessed at).
+func NewUnusedIndex(table, index string) UnusedIndex {
+	return UnusedIndex{
+		Table: table,
+		Index: index,
+		Explanation: fmt.Sprintf(
+			"Index %q on %s has had zero reads since the server started (or since statistics were last reset). It may be safe to drop, but verify it isn't used by a rare batch job or reporting query before doing so.",
+			index, table,
+		),
+	}
+}
+
 func formatBytes(bytes int64) string {
 	const unit = 1024
 	if bytes < unit {

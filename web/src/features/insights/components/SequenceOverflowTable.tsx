@@ -1,13 +1,13 @@
 import type { SequenceOverflowRisk } from '../../../shared/types/insights'
+import { HealthCardHeader } from './HealthCardHeader'
+
+const SUBTITLE = 'Auto-incrementing IDs getting close to their maximum value.'
 
 export function SequenceOverflowTable({ risks }: { risks: SequenceOverflowRisk[] }) {
     if (risks.length === 0) {
         return (
             <div className="health-card">
-                <div className="health-card__header">
-                    <span className="health-card__status health-card__status--ok">✓</span>
-                    <span className="health-card__title">Sequence overflow risk</span>
-                </div>
+                <HealthCardHeader title="Sequence overflow risk" subtitle={SUBTITLE} ok />
                 <p className="insights-empty">No sequences approaching their maximum value.</p>
             </div>
         )
@@ -15,10 +15,7 @@ export function SequenceOverflowTable({ risks }: { risks: SequenceOverflowRisk[]
 
     return (
         <div className="health-card">
-            <div className="health-card__header">
-                <span className="health-card__status health-card__status--warning">⚠</span>
-                <span className="health-card__title">Sequence overflow risk</span>
-            </div>
+            <HealthCardHeader title="Sequence overflow risk" subtitle={SUBTITLE} ok={false} />
             <ul className="index-candidates-table__rationales">
                 {risks.map((r, i) => (
                     <li key={i}>

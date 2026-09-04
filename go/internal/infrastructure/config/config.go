@@ -11,6 +11,7 @@ import (
 // environment variables. No defaults are silently assumed for secrets.
 type Config struct {
 	DatabaseURL                   string
+	Engine                        DBEngine
 	HTTPPort                      string
 	PollInterval                  time.Duration
 	APIKey                        string
@@ -23,6 +24,17 @@ type Config struct {
 	HistoryMaxDBSizeBytes         int64
 }
 
+// DBEngine selects which database engine pgscope connects to and collects
+// stats from. Each engine gets its own infrastructure adapter package
+// implementing the same application-layer ports — domain and application
+// code never branches on this value, only main.go's composition root does.
+type DBEngine string
+
+const (
+	DBEnginePostgres DBEngine = "postgres"
+	DBEngineMySQL    DBEngine = "mysql"
+)
+
 const (
 	defaultPollIntervalSeconds           = 1
 	defaultInsightsRateLimitPerSecond    = 5
@@ -32,12 +44,18 @@ const (
 	defaultHistoryRecordIntervalSeconds  = 15
 	defaultHistoryMaxSessionsPerSnapshot = 50
 	defaultHistoryMaxDBSizeMB            = 500
+	defaultDBEngine                      = DBEnginePostgres
 )
 
 func Load() (Config, error) {
 	databaseURL := os.Getenv("PGSCOPE_DATABASE_URL")
 	if databaseURL == "" {
 		return Config{}, fmt.Errorf("PGSCOPE_DATABASE_URL is required")
+	}
+
+	engine, err := loadDBEngine()
+	if err != nil {
+		return Config{}, err
 	}
 
 	apiKey := os.Getenv("PGSCOPE_API_KEY")
@@ -92,6 +110,7 @@ func Load() (Config, error) {
 
 	return Config{
 		DatabaseURL:                   databaseURL,
+		Engine:                        engine,
 		HTTPPort:                      httpPort,
 		PollInterval:                  pollInterval,
 		APIKey:                        apiKey,
@@ -225,4 +244,21 @@ func loadHistoryMaxDBSizeBytes() (int64, error) {
 	}
 
 	return megabytes * 1024 * 1024, nil
+}
+
+// loadDBEngine selects which database engine to connect to. Defaults to
+// postgres — the only engine currently implemented — so existing setups
+// don't need a new env var to keep working.
+func loadDBEngine() (DBEngine, error) {
+	raw := os.Getenv("PGSCOPE_DB_ENGINE")
+	if raw == "" {
+		return defaultDBEngine, nil
+	}
+
+	switch DBEngine(raw) {
+	case DBEnginePostgres, DBEngineMySQL:
+		return DBEngine(raw), nil
+	default:
+		return "", fmt.Errorf("PGSCOPE_DB_ENGINE must be one of: postgres, mysql, got %q", raw)
+	}
 }

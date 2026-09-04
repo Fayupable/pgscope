@@ -76,6 +76,7 @@ export interface Insights {
     replicationSlotWarnings: ReplicationSlotWarning[]
     longRunningQueryWarnings: LongRunningQueryWarning[]
     unloggedTables: UnloggedTable[]
+    lockWaitWarnings: LockWaitWarning[]
 }
 
 export interface TableSize {
@@ -180,5 +181,17 @@ export interface LongRunningQueryWarning {
 
 export interface UnloggedTable {
     table: string
+    explanation: string
+}
+
+// LockWaitWarning is MySQL-only for now — Postgres responses never include
+// this field. See domain.LockWaitSession on the backend for why.
+export interface LockWaitWarning {
+    waitingPid: number
+    waitingQuery: string
+    blockingPid: number
+    blockingQuery: string
+    lockedTable: string
+    waitAgeSeconds: number
     explanation: string
 }

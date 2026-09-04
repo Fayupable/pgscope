@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { checkAuthStatus, logout } from './shared/api/authClient'
 import { LoginScreen } from './features/auth/components/LoginScreen'
 import { MonitoringStreamProvider } from './shared/api/MonitoringStreamProvider'
+import { EngineProvider } from './shared/api/EngineProvider'
 import { Dashboard } from './features/dashboard/components/Dashboard'
 import { useTheme } from './shared/hooks/useTheme'
 
@@ -29,9 +30,11 @@ function App() {
   }
 
   return (
-    <MonitoringStreamProvider>
-      <Dashboard onLogout={handleLogout} theme={theme} onToggleTheme={toggleTheme} />
-    </MonitoringStreamProvider>
+    <EngineProvider>
+      <MonitoringStreamProvider>
+        <Dashboard onLogout={handleLogout} theme={theme} onToggleTheme={toggleTheme} />
+      </MonitoringStreamProvider>
+    </EngineProvider>
   )
 }
 

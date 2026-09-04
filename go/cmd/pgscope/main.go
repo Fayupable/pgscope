@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -15,6 +16,7 @@ import (
 	"github.com/fayupable/pgscope/internal/application/service"
 	"github.com/fayupable/pgscope/internal/infrastructure/config"
 	"github.com/fayupable/pgscope/internal/infrastructure/history"
+	"github.com/fayupable/pgscope/internal/infrastructure/mysql"
 	"github.com/fayupable/pgscope/internal/infrastructure/postgres"
 	"github.com/fayupable/pgscope/internal/infrastructure/sse"
 	presentationhttp "github.com/fayupable/pgscope/internal/presentation/http"
@@ -36,6 +38,12 @@ func run() error {
 	cfg, err := config.Load()
 	if err != nil {
 		return err
+	}
+
+	// The engine selection point: each engine gets its own infrastructure
+	// adapter package implementing the same application-layer ports.
+	if cfg.Engine == config.DBEngineMySQL {
+		return runMySQL(ctx, cfg)
 	}
 
 	pool, err := postgres.NewPool(ctx, postgres.PoolConfig{ConnString: cfg.DatabaseURL})
@@ -84,6 +92,28 @@ func buildInsightsService(pool *pgxpool.Pool) *service.InsightsService {
 	return service.NewInsightsService(insightsCollector)
 }
 
+func buildMySQLPoller(pool *sql.DB, broadcaster *sse.Broadcaster, historyStore *history.SQLiteStore, cfg config.Config) *service.Poller {
+	collector := mysql.NewSessionCollector(pool)
+	monitoringService := service.NewMonitoringService(collector)
+
+	dbStatsCollector := mysql.NewDatabaseStatsCollector(pool)
+	publisher := sse.NewSessionPublisher(broadcaster)
+
+	return service.NewPoller(
+		monitoringService,
+		dbStatsCollector,
+		publisher,
+		historyStore,
+		cfg.PollInterval,
+		cfg.HistoryRecordInterval,
+		cfg.HistoryMaxSessionsPerSnapshot,
+	)
+}
+
+func buildMySQLInsightsService(pool *sql.DB) *service.InsightsService {
+	return service.NewInsightsService(mysql.NewInsightsCollector(pool))
+}
+
 func buildServer(broadcaster *sse.Broadcaster, poller *service.Poller, insightsService *service.InsightsService, cfg config.Config) *http.Server {
 	mux := presentationhttp.NewRouter(broadcaster, poller, insightsService, cfg)
 
@@ -95,6 +125,36 @@ func buildServer(broadcaster *sse.Broadcaster, poller *service.Poller, insightsS
 		WriteTimeout:      30 * time.Second,
 		IdleTimeout:       120 * time.Second,
 	}
+}
+
+// runMySQL mirrors run()'s Postgres flow exactly, using mysql.* adapters —
+// full live SSE session/lock stream, monitor start/stop, history, and
+// insights, all backed by mysql.SessionCollector/DatabaseStatsCollector/
+// InsightsCollector now that MySQL implements every port the Postgres
+// engine does.
+func runMySQL(ctx context.Context, cfg config.Config) error {
+	pool, err := mysql.NewPool(ctx, mysql.PoolConfig{DSN: cfg.DatabaseURL})
+	if err != nil {
+		return err
+	}
+	defer func() { _ = pool.Close() }()
+
+	historyStore, err := history.NewSQLiteStore(cfg.HistoryDBPath)
+	if err != nil {
+		return fmt.Errorf("open history store: %w", err)
+	}
+	defer func() { _ = historyStore.Close() }()
+
+	broadcaster := sse.NewBroadcaster()
+	poller := buildMySQLPoller(pool, broadcaster, historyStore, cfg)
+	insightsService := buildMySQLInsightsService(pool)
+	server := buildServer(broadcaster, poller, insightsService, cfg)
+
+	go poller.Run(ctx)
+	go runHistoryPruner(ctx, historyStore, cfg.HistoryRetention, cfg.HistoryMaxDBSizeBytes)
+
+	slog.Info("running MySQL engine", "port", cfg.HTTPPort)
+	return runServer(ctx, server)
 }
 
 func runServer(ctx context.Context, server *http.Server) error {
